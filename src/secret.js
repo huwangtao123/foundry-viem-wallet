@@ -93,7 +93,7 @@ export async function resolveKeystorePassword(promptText = "Keystore password: "
 
   if (requireSplit) {
     throw new Error(
-      "Split-secret mode is enabled by default. Set AGENT_KEY_PART_A and AGENT_KEY_DERIVE_SALT (typically from Doppler)."
+      "Split-secret mode is enabled by default. Set AGENT_KEY_PART_A and AGENT_KEY_DERIVE_SALT."
     );
   }
 

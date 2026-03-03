@@ -51,14 +51,13 @@ This repo implements **Option 1**.
 - Node.js 18+
 - Foundry (`cast`) optional (verification only)
 - Foundry（`cast`）可选，仅用于校验
-- Doppler CLI optional (recommended for split-secret mode)
-- Doppler CLI 可选（推荐用于分片密钥模式）
+- Local environment variables (recommended baseline)
+- 本地环境变量（推荐基础方案）
 
-## Doppler secret design (recommended)
-## Doppler 密钥设计（推荐）
+## Split-Secret Design (Local First)
+## 分段方案（本地优先）
 
-Default behavior:
-默认行为：
+Default behavior / 默认行为：
 - Split-secret mode is ON by default.
 - 默认开启分段模式。
 - If `AGENT_KEY_PART_A` / `AGENT_KEY_DERIVE_SALT` are missing, commands fail fast.
@@ -66,10 +65,12 @@ Default behavior:
 - To allow legacy direct-password fallback, set `REQUIRE_DOPPLER_SPLIT=0`.
 - 若要允许旧版明文密码回退，需显式设置 `REQUIRE_DOPPLER_SPLIT=0`。
 
-Store these in Doppler:
-在 Doppler 中保存以下变量：
+Set these variables in local env / `.env`:
+在本地环境变量或 `.env` 中设置：
 - `AGENT_KEY_PART_A` (high-entropy random string)
 - `AGENT_KEY_PART_A`（高熵随机字符串）
+- `AGENT_KEY_PART_B` (second secret part)
+- `AGENT_KEY_PART_B`（第二段密钥）
 - `AGENT_KEY_DERIVE_SALT` (random salt, stable for one wallet)
 - `AGENT_KEY_DERIVE_SALT`（随机盐值，同一钱包保持稳定）
 - `AGENT_KEYSTORE_PATH`
@@ -77,10 +78,10 @@ Store these in Doppler:
 - optional: `TO_ADDRESS`, `SEND_AMOUNT_ETH`
 - 可选：`TO_ADDRESS`、`SEND_AMOUNT_ETH`
 
-Never store in Doppler:
-不要放入 Doppler：
-- `AGENT_KEY_PART_B` (user enters at runtime)
-- `AGENT_KEY_PART_B`（由用户每次运行时输入）
+Optional:
+可选：
+- Use Doppler only as an env injector (`doppler run -- ...`) if you want centralized secret management.
+- 如果你需要集中管理 secret，可选使用 Doppler 仅作为环境变量注入器。
 
 ## Beginner quickstart (Option 1)
 ## 新手快速开始（方案 1）
@@ -112,19 +113,10 @@ Optional non-interactive mode:
 WALLET_PASSWORD='your-strong-password' npm run generate -- --name my-agent
 ```
 
-Recommended with Doppler split-secret mode:
-推荐：Doppler 分片密钥模式
-
-```bash
-doppler run -- npm run generate -- --name my-agent
-```
-
 In split-secret mode:
 分片模式下：
-- `AGENT_KEY_PART_A` and `AGENT_KEY_DERIVE_SALT` come from Doppler
-- `AGENT_KEY_PART_A` 与 `AGENT_KEY_DERIVE_SALT` 由 Doppler 提供
-- script prompts user for `KEY_PART_B` (hidden input) at runtime
-- 脚本运行时会要求用户输入 `KEY_PART_B`（隐藏输入）
+- `AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT` derive the keystore password
+- `AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT` 共同派生 keystore 密码
 
 Optional custom keystore directory:
 可选：自定义 keystore 目录
@@ -146,8 +138,8 @@ Edit `.env`:
 - `AGENT_KEYSTORE_PATH` = 第 2 步输出的 keystore 路径
 - `RPC_URL` = your chain RPC
 - `RPC_URL` = 链的 RPC 地址
-- preferred: `AGENT_KEY_PART_A` + `AGENT_KEY_DERIVE_SALT`
-- 推荐：`AGENT_KEY_PART_A` + `AGENT_KEY_DERIVE_SALT`
+- preferred: `AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT`
+- 推荐：`AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT`
 - legacy fallback: `AGENT_KEYSTORE_PASSWORD`
 - 兼容模式：`AGENT_KEYSTORE_PASSWORD`
 
@@ -164,12 +156,9 @@ set -a; source .env; set +a
 npm run agent -- sign
 ```
 
-With Doppler:
-使用 Doppler：
-
-```bash
-doppler run -- npm run agent -- sign
-```
+Optional with Doppler as env injector:
+可选：用 Doppler 注入环境变量：
+`doppler run -- npm run agent -- sign`
 
 Success signal:
 成功标志：
@@ -186,12 +175,9 @@ set -a; source .env; set +a
 npm run agent -- send
 ```
 
-With Doppler:
-使用 Doppler：
-
-```bash
-doppler run -- npm run agent -- send
-```
+Optional with Doppler as env injector:
+可选：用 Doppler 注入环境变量：
+`doppler run -- npm run agent -- send`
 
 ## Optional Foundry verification (Option 2 style)
 ## 可选 Foundry 校验（方案 2 风格）
@@ -239,8 +225,8 @@ cast wallet address --keystore /path/to/keystores/my-agent
 - 原始私钥不会出现在命令行参数中。
 - Keystore file is encrypted JSON, written with restrictive permissions.
 - keystore 文件为加密 JSON，并使用严格文件权限写入。
-- In split-secret mode, password is derived at runtime from `PART_A` (Doppler) + `PART_B` (user input).
-- 分片模式下，密码由 `PART_A`（Doppler）+ `PART_B`（用户输入）在运行时派生。
+- In split-secret mode, password is derived at runtime from `PART_A + PART_B + SALT`.
+- 分片模式下，密码由 `PART_A + PART_B + SALT` 在运行时派生。
 - `.env` is ignored by git (see [.gitignore](/Users/taowang/workspace/Agents/foundry-viem-wallet/.gitignore)).
 - `.env` 已被 git 忽略（见 [.gitignore](/Users/taowang/workspace/Agents/foundry-viem-wallet/.gitignore)）。
 

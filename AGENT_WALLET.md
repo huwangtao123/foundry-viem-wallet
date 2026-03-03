@@ -36,11 +36,12 @@ Required fields in `.env` (direct password mode):
 - `AGENT_KEYSTORE_PASSWORD` = password used during generation
 - `RPC_URL` = chain RPC endpoint
 
-Recommended fields for Doppler split-secret mode:
+Recommended fields for local split-secret mode:
 - `AGENT_KEYSTORE_PATH`
 - `RPC_URL`
-- `AGENT_KEY_PART_A` (from Doppler)
-- `AGENT_KEY_DERIVE_SALT` (from Doppler)
+- `AGENT_KEY_PART_A`
+- `AGENT_KEY_PART_B`
+- `AGENT_KEY_DERIVE_SALT`
 - `REQUIRE_DOPPLER_SPLIT=1` (default policy)
 
 Note:
@@ -48,8 +49,8 @@ Note:
 - if split-secret vars are missing, command will fail.
 - only set `REQUIRE_DOPPLER_SPLIT=0` if you intentionally want legacy fallback.
 
-Runtime input (not stored in Doppler):
-- `AGENT_KEY_PART_B` (user inputs when prompted)
+Optional runtime input:
+- if `AGENT_KEY_PART_B` is not set, script will prompt for it interactively
 
 Optional (only for send):
 - `TO_ADDRESS`
@@ -62,11 +63,8 @@ set -a; source .env; set +a
 npm run agent -- sign
 ```
 
-With Doppler:
-```bash
-cd /Users/taowang/workspace/Agents/foundry-viem-wallet
-doppler run -- npm run agent -- sign
-```
+Optional with Doppler as env injector:
+`doppler run -- npm run agent -- sign`
 
 Success criteria:
 - output has `address`, `signature`, `recovered`
@@ -79,11 +77,8 @@ set -a; source .env; set +a
 npm run agent -- send
 ```
 
-With Doppler:
-```bash
-cd /Users/taowang/workspace/Agents/foundry-viem-wallet
-doppler run -- npm run agent -- send
-```
+Optional with Doppler as env injector:
+`doppler run -- npm run agent -- send`
 
 Success criteria:
 - output has `tx_hash`
@@ -94,7 +89,7 @@ Success criteria:
 - Never pass private key in CLI args.
 - Keep keystore file permission `600`, directory `700`.
 - Keep wallet password only in process env/secret manager.
-- Prefer split-secret mode: `PART_A` in Doppler + `PART_B` from user input.
+- Prefer split-secret mode: `PART_A + PART_B + SALT` in local env/secret manager.
 - Use low-balance wallet for demo.
 
 ## Security boundary (must read)
