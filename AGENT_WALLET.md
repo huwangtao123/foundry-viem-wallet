@@ -31,10 +31,19 @@ cd /Users/taowang/workspace/Agents/foundry-viem-wallet
 cp .env.example .env
 ```
 
-Required fields in `.env`:
+Required fields in `.env` (direct password mode):
 - `AGENT_KEYSTORE_PATH` = keystore path from Step 1
 - `AGENT_KEYSTORE_PASSWORD` = password used during generation
 - `RPC_URL` = chain RPC endpoint
+
+Recommended fields for Doppler split-secret mode:
+- `AGENT_KEYSTORE_PATH`
+- `RPC_URL`
+- `AGENT_KEY_PART_A` (from Doppler)
+- `AGENT_KEY_DERIVE_SALT` (from Doppler)
+
+Runtime input (not stored in Doppler):
+- `AGENT_KEY_PART_B` (user inputs when prompted)
 
 Optional (only for send):
 - `TO_ADDRESS`
@@ -45,6 +54,12 @@ Optional (only for send):
 cd /Users/taowang/workspace/Agents/foundry-viem-wallet
 set -a; source .env; set +a
 npm run agent -- sign
+```
+
+With Doppler:
+```bash
+cd /Users/taowang/workspace/Agents/foundry-viem-wallet
+doppler run -- npm run agent -- sign
 ```
 
 Success criteria:
@@ -58,6 +73,12 @@ set -a; source .env; set +a
 npm run agent -- send
 ```
 
+With Doppler:
+```bash
+cd /Users/taowang/workspace/Agents/foundry-viem-wallet
+doppler run -- npm run agent -- send
+```
+
 Success criteria:
 - output has `tx_hash`
 - receipt `status` is `1`
@@ -67,6 +88,7 @@ Success criteria:
 - Never pass private key in CLI args.
 - Keep keystore file permission `600`, directory `700`.
 - Keep wallet password only in process env/secret manager.
+- Prefer split-secret mode: `PART_A` in Doppler + `PART_B` from user input.
 - Use low-balance wallet for demo.
 
 ## Troubleshooting

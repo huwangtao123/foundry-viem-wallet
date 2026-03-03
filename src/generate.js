@@ -1,11 +1,10 @@
-import { createInterface } from "node:readline";
-import { stdin as input, stdout as output, stderr } from "node:process";
+import { stderr } from "node:process";
 import { mkdir, open } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { encryptKeystoreJson } from "ethers";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { resolveKeystorePassword } from "./secret.js";
 
 function usage() {
   console.log(
@@ -42,53 +41,6 @@ function parseArgs(argv) {
   return args;
 }
 
-async function promptHidden(promptText) {
-  const envPassword = process.env.WALLET_PASSWORD;
-  if (envPassword && envPassword.trim()) {
-    return envPassword.trim();
-  }
-
-  if (!input.isTTY || !output.isTTY) {
-    throw new Error("TTY required for hidden password input. Or set WALLET_PASSWORD env.");
-  }
-
-  return new Promise((resolve) => {
-    const rl = createInterface({ input, output, terminal: true });
-    let echoDisabled = false;
-    let restored = false;
-
-    const restoreEcho = () => {
-      if (!echoDisabled || restored) return;
-      try {
-        execFileSync("stty", ["echo"], { stdio: "inherit" });
-      } catch (_err) {
-        // Best-effort restore.
-      }
-      restored = true;
-    };
-
-    try {
-      execFileSync("stty", ["-echo"], { stdio: "inherit" });
-      echoDisabled = true;
-    } catch (_err) {
-      // Continue even if echo toggle is unavailable.
-    }
-
-    rl.question(promptText, (answer) => {
-      restoreEcho();
-      rl.close();
-      output.write("\n");
-      resolve(answer);
-    });
-
-    rl.on("SIGINT", () => {
-      restoreEcho();
-      rl.close();
-      process.exit(130);
-    });
-  });
-}
-
 async function writeSecureFile(path, contents) {
   const fh = await open(path, "wx", 0o600);
   try {
@@ -103,7 +55,11 @@ async function run() {
   const keystoreDir =
     args.keystoreDir || join(homedir(), ".foundry", "keystores");
 
-  const password = await promptHidden("Set keystore password: ");
+  if (process.env.WALLET_PASSWORD && !process.env.AGENT_KEYSTORE_PASSWORD) {
+    process.env.AGENT_KEYSTORE_PASSWORD = process.env.WALLET_PASSWORD;
+  }
+
+  const password = await resolveKeystorePassword("Set keystore password: ");
   if (!password) {
     throw new Error("Password cannot be empty");
   }

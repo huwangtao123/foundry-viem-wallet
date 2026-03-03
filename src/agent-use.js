@@ -1,14 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { stderr } from "node:process";
 import { ethers } from "ethers";
-
-function requiredEnv(name) {
-  const v = process.env[name];
-  if (!v || !v.trim()) {
-    throw new Error(`Missing env: ${name}`);
-  }
-  return v.trim();
-}
+import { requiredEnv, resolveKeystorePassword } from "./secret.js";
 
 function parseArgs(argv) {
   const cmd = (argv[0] || "sign").toLowerCase();
@@ -20,7 +13,7 @@ function parseArgs(argv) {
 
 async function loadSigner() {
   const keystorePath = requiredEnv("AGENT_KEYSTORE_PATH");
-  const password = requiredEnv("AGENT_KEYSTORE_PASSWORD");
+  const password = await resolveKeystorePassword("Keystore password: ");
   const rpcUrl = requiredEnv("RPC_URL");
 
   const keystoreJson = await readFile(keystorePath, "utf8");
