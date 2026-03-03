@@ -103,6 +103,11 @@ async function run() {
 }
 
 run().catch((err) => {
-  stderr.write(`Error: ${err.message}\n`);
+  const msg = err?.message || "";
+  if (msg.includes("Missing") || msg.includes("configuration")) {
+    stderr.write("Error: Invalid wallet configuration.\n");
+  } else {
+    stderr.write("Error: Wallet generation failed.\n");
+  }
   process.exit(1);
 });

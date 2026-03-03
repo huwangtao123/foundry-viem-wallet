@@ -61,6 +61,15 @@ async function main() {
 }
 
 main().catch((err) => {
-  stderr.write(`Error: ${err.message}\n`);
+  const msg = err?.message || "";
+  if (
+    msg.includes("Missing") ||
+    msg.includes("configuration") ||
+    msg.includes("incorrect password")
+  ) {
+    stderr.write("Error: Invalid signer configuration or credentials.\n");
+  } else {
+    stderr.write("Error: Agent wallet operation failed.\n");
+  }
   process.exit(1);
 });

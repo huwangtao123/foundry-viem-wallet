@@ -6,7 +6,7 @@ import { scryptSync } from "node:crypto";
 export function requiredEnv(name) {
   const v = process.env[name];
   if (!v || !v.trim()) {
-    throw new Error(`Missing env: ${name}`);
+    throw new Error("Missing required configuration.");
   }
   return v.trim();
 }
@@ -71,10 +71,10 @@ export async function resolveKeystorePassword(promptText = "Keystore password: "
   const salt = process.env.AGENT_KEY_DERIVE_SALT;
 
   if (partA && !salt) {
-    throw new Error("Missing env: AGENT_KEY_DERIVE_SALT");
+    throw new Error("Split-secret configuration is incomplete.");
   }
   if (!partA && salt) {
-    throw new Error("Missing env: AGENT_KEY_PART_A");
+    throw new Error("Split-secret configuration is incomplete.");
   }
 
   if (partA && partA.trim()) {
@@ -93,7 +93,7 @@ export async function resolveKeystorePassword(promptText = "Keystore password: "
 
   if (requireSplit) {
     throw new Error(
-      "Split-secret mode is enabled by default. Set AGENT_KEY_PART_A and AGENT_KEY_DERIVE_SALT."
+      "Split-secret mode is enabled by default, but required configuration is missing."
     );
   }
 
