@@ -12,9 +12,11 @@ Set these before running:
 - `AGENT_KEYSTORE_PATH`
 - `RPC_URL`
 - `AGENT_KEY_PART_A`
-- `AGENT_KEY_PART_B`
 - `AGENT_KEY_DERIVE_SALT`
 - `REQUIRE_DOPPLER_SPLIT=1`
+
+Runtime input:
+- `KEY_PART_B` must be entered interactively when prompted.
 
 Optional:
 - `TO_ADDRESS`

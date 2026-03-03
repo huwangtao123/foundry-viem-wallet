@@ -69,14 +69,17 @@ Set these variables in local env / `.env`:
 在本地环境变量或 `.env` 中设置：
 - `AGENT_KEY_PART_A` (high-entropy random string)
 - `AGENT_KEY_PART_A`（高熵随机字符串）
-- `AGENT_KEY_PART_B` (second secret part)
-- `AGENT_KEY_PART_B`（第二段密钥）
 - `AGENT_KEY_DERIVE_SALT` (random salt, stable for one wallet)
 - `AGENT_KEY_DERIVE_SALT`（随机盐值，同一钱包保持稳定）
 - `AGENT_KEYSTORE_PATH`
 - `RPC_URL`
 - optional: `TO_ADDRESS`, `SEND_AMOUNT_ETH`
 - 可选：`TO_ADDRESS`、`SEND_AMOUNT_ETH`
+
+Runtime input (mandatory):
+运行时输入（必须）：
+- `KEY_PART_B` must be entered interactively when prompted.
+- `KEY_PART_B` 必须在提示时手动输入。
 
 Optional:
 可选：
@@ -115,8 +118,8 @@ WALLET_PASSWORD='your-strong-password' npm run generate -- --name my-agent
 
 In split-secret mode:
 分片模式下：
-- `AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT` derive the keystore password
-- `AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT` 共同派生 keystore 密码
+- `AGENT_KEY_PART_A` + interactive `KEY_PART_B` + `AGENT_KEY_DERIVE_SALT` derive the keystore password
+- `AGENT_KEY_PART_A` + 交互输入 `KEY_PART_B` + `AGENT_KEY_DERIVE_SALT` 共同派生 keystore 密码
 
 Optional custom keystore directory:
 可选：自定义 keystore 目录
@@ -138,8 +141,10 @@ Edit `.env`:
 - `AGENT_KEYSTORE_PATH` = 第 2 步输出的 keystore 路径
 - `RPC_URL` = your chain RPC
 - `RPC_URL` = 链的 RPC 地址
-- preferred: `AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT`
-- 推荐：`AGENT_KEY_PART_A` + `AGENT_KEY_PART_B` + `AGENT_KEY_DERIVE_SALT`
+- preferred: `AGENT_KEY_PART_A` + `AGENT_KEY_DERIVE_SALT`
+- 推荐：`AGENT_KEY_PART_A` + `AGENT_KEY_DERIVE_SALT`
+- enter `KEY_PART_B` interactively at runtime
+- `KEY_PART_B` 在运行时交互输入
 - legacy fallback: `AGENT_KEYSTORE_PASSWORD`
 - 兼容模式：`AGENT_KEYSTORE_PASSWORD`
 
@@ -199,11 +204,11 @@ cast wallet address --keystore /path/to/keystores/my-agent
 - Private key is never stored as plaintext on disk.
 - 私钥不会以明文落盘。
 - Keystore password can be derived from split secrets (`PART_A + PART_B + SALT`) instead of a single plaintext password.
-- keystore 解密密码可由分段变量（`PART_A + PART_B + SALT`）派生，而不是单一明文密码。
+- keystore 解密密码可由分段变量（`PART_A + 交互输入 PART_B + SALT`）派生，而不是单一明文密码。
 
 2. Not guaranteed / 未保证
 - If one runtime can read all `PART_A/PART_B/SALT`, agent can decrypt and sign at runtime.
-- 若同一运行环境可读取 `PART_A/PART_B/SALT` 三段，agent 运行时就能解密并签名。
+- 若同一运行环境可读取 `PART_A/SALT` 且可控制交互输入 `PART_B`，agent 运行时就能解密并签名。
 - This is not HSM/KMS-level key isolation.
 - 这不是 HSM/KMS 级别的密钥隔离。
 
@@ -226,7 +231,7 @@ cast wallet address --keystore /path/to/keystores/my-agent
 - Keystore file is encrypted JSON, written with restrictive permissions.
 - keystore 文件为加密 JSON，并使用严格文件权限写入。
 - In split-secret mode, password is derived at runtime from `PART_A + PART_B + SALT`.
-- 分片模式下，密码由 `PART_A + PART_B + SALT` 在运行时派生。
+- 分片模式下，密码由 `PART_A + 交互输入 PART_B + SALT` 在运行时派生。
 - `.env` is ignored by git (see [.gitignore](/Users/taowang/workspace/Agents/foundry-viem-wallet/.gitignore)).
 - `.env` 已被 git 忽略（见 [.gitignore](/Users/taowang/workspace/Agents/foundry-viem-wallet/.gitignore)）。
 

@@ -78,10 +78,11 @@ export async function resolveKeystorePassword(promptText = "Keystore password: "
   }
 
   if (partA && partA.trim()) {
-    let partB = process.env.AGENT_KEY_PART_B;
-    if (!partB || !partB.trim()) {
-      partB = await promptHidden("User passphrase (KEY_PART_B): ");
+    const partBFromEnv = process.env.AGENT_KEY_PART_B;
+    if (partBFromEnv && partBFromEnv.trim()) {
+      throw new Error("AGENT_KEY_PART_B must be provided interactively.");
     }
+    const partB = await promptHidden("User passphrase (KEY_PART_B): ");
     if (!partB || !partB.trim()) {
       throw new Error("KEY_PART_B cannot be empty");
     }
