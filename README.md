@@ -197,6 +197,33 @@ cast wallet address --keystore /path/to/keystores/my-agent
 ## Security model (important)
 ## 安全模型（重点）
 
+### Security boundary (must read)
+### 安全边界（必读）
+
+1. Guaranteed / 已保证
+- Private key is never stored as plaintext on disk.
+- 私钥不会以明文落盘。
+- Keystore password can be derived from split secrets (`PART_A + PART_B + SALT`) instead of a single plaintext password.
+- keystore 解密密码可由分段变量（`PART_A + PART_B + SALT`）派生，而不是单一明文密码。
+
+2. Not guaranteed / 未保证
+- If one runtime can read all `PART_A/PART_B/SALT`, agent can decrypt and sign at runtime.
+- 若同一运行环境可读取 `PART_A/PART_B/SALT` 三段，agent 运行时就能解密并签名。
+- This is not HSM/KMS-level key isolation.
+- 这不是 HSM/KMS 级别的密钥隔离。
+
+3. Main risk / 主要风险
+- Storing all three parts in one environment means security depends on that environment's security.
+- 三段都放在同一环境时，安全性主要取决于该环境本身。
+- If that environment is compromised, attacker can reproduce decryption/signing.
+- 环境被攻破时，攻击者可复现解密和签名。
+
+4. How to improve / 提升方向
+- Split-secret reduces accidental leakage risk, but does not fully isolate signing authority.
+- 分段机制能降低误泄漏风险，但不能完全隔离签名权限。
+- For stronger isolation, move signing to KMS/HSM/MPC and let agent only receive signatures.
+- 若要更强隔离，应使用 KMS/HSM/MPC，让 agent 只接收签名结果。
+
 - Raw private key is generated in memory and never printed.
 - 原始私钥只在内存生成，不会打印。
 - Raw private key is not passed in CLI args.

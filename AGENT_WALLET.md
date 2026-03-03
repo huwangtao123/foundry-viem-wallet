@@ -91,6 +91,21 @@ Success criteria:
 - Prefer split-secret mode: `PART_A` in Doppler + `PART_B` from user input.
 - Use low-balance wallet for demo.
 
+## Security boundary (must read)
+1. Guaranteed
+- private key is not stored as plaintext on disk
+- keystore can be unlocked using split-derived password (`PART_A + PART_B + SALT`)
+
+2. Not guaranteed
+- if one runtime can read all `PART_A/PART_B/SALT`, it can decrypt and sign
+- this is not HSM/KMS isolation
+
+3. Main risk
+- putting all three parts in one environment concentrates risk in that environment
+
+4. Stronger model
+- use KMS/HSM/MPC signer so agent only receives signatures, not decryption material
+
 ## Troubleshooting
 - `Missing env: ...`: fill missing keys in `.env`.
 - RPC timeout: switch `RPC_URL` to a stable endpoint.
