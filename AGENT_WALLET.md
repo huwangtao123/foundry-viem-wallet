@@ -41,6 +41,12 @@ Recommended fields for Doppler split-secret mode:
 - `RPC_URL`
 - `AGENT_KEY_PART_A` (from Doppler)
 - `AGENT_KEY_DERIVE_SALT` (from Doppler)
+- `REQUIRE_DOPPLER_SPLIT=1` (default policy)
+
+Note:
+- split-secret mode is now the default.
+- if split-secret vars are missing, command will fail.
+- only set `REQUIRE_DOPPLER_SPLIT=0` if you intentionally want legacy fallback.
 
 Runtime input (not stored in Doppler):
 - `AGENT_KEY_PART_B` (user inputs when prompted)

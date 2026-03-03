@@ -65,14 +65,19 @@ function derivePassword(partA, partB, salt) {
 }
 
 export async function resolveKeystorePassword(promptText = "Keystore password: ") {
-  const direct = process.env.AGENT_KEYSTORE_PASSWORD;
-  if (direct && direct.trim()) {
-    return direct.trim();
+  // Default policy: split-secret mode is required unless explicitly disabled.
+  const requireSplit = process.env.REQUIRE_DOPPLER_SPLIT !== "0";
+  const partA = process.env.AGENT_KEY_PART_A;
+  const salt = process.env.AGENT_KEY_DERIVE_SALT;
+
+  if (partA && !salt) {
+    throw new Error("Missing env: AGENT_KEY_DERIVE_SALT");
+  }
+  if (!partA && salt) {
+    throw new Error("Missing env: AGENT_KEY_PART_A");
   }
 
-  const partA = process.env.AGENT_KEY_PART_A;
   if (partA && partA.trim()) {
-    const salt = requiredEnv("AGENT_KEY_DERIVE_SALT");
     let partB = process.env.AGENT_KEY_PART_B;
     if (!partB || !partB.trim()) {
       partB = await promptHidden("User passphrase (KEY_PART_B): ");
@@ -81,9 +86,20 @@ export async function resolveKeystorePassword(promptText = "Keystore password: "
       throw new Error("KEY_PART_B cannot be empty");
     }
 
-    const password = derivePassword(partA.trim(), partB.trim(), salt);
+    const password = derivePassword(partA.trim(), partB.trim(), salt.trim());
     process.env.AGENT_KEY_PART_B = "";
     return password;
+  }
+
+  if (requireSplit) {
+    throw new Error(
+      "Split-secret mode is enabled by default. Set AGENT_KEY_PART_A and AGENT_KEY_DERIVE_SALT (typically from Doppler)."
+    );
+  }
+
+  const direct = process.env.AGENT_KEYSTORE_PASSWORD;
+  if (direct && direct.trim()) {
+    return direct.trim();
   }
 
   return (await promptHidden(promptText)).trim();

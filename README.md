@@ -57,6 +57,15 @@ This repo implements **Option 1**.
 ## Doppler secret design (recommended)
 ## Doppler 密钥设计（推荐）
 
+Default behavior:
+默认行为：
+- Split-secret mode is ON by default.
+- 默认开启分段模式。
+- If `AGENT_KEY_PART_A` / `AGENT_KEY_DERIVE_SALT` are missing, commands fail fast.
+- 如果缺少 `AGENT_KEY_PART_A` / `AGENT_KEY_DERIVE_SALT`，命令会直接失败。
+- To allow legacy direct-password fallback, set `REQUIRE_DOPPLER_SPLIT=0`.
+- 若要允许旧版明文密码回退，需显式设置 `REQUIRE_DOPPLER_SPLIT=0`。
+
 Store these in Doppler:
 在 Doppler 中保存以下变量：
 - `AGENT_KEY_PART_A` (high-entropy random string)
